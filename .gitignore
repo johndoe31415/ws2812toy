@@ -1,0 +1,11 @@
+.*.swp
+*.o
+__pycache__
+ledring
+ledring.E
+ledring.S
+ledring.syms
+ledring.dmp
+ledring.bin
+ledring_EEPROM.hex
+ledring_Flash.hex

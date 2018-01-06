@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<HAL>
+	<templates>
+		<template name="diginput">
+			<pin type="input" initialpullup="inactive" />
+		</template>
+
+		<template name="digoutput">
+			<pin type="output" initialvalue="inactive" />
+		</template>
+		
+		<template name="digoutputinv">
+			<pin type="output" initialvalue="inactive" />
+			<activelow />
+		</template>
+		<template name="digio">
+			<pin type="io" initialstate="input" initialpullup="inactive" />
+		</template>
+	</templates>
+
+	<portpin name="PB0" template="digoutput">
+		<description value="LEDOutput" />
+	</portpin>
+</HAL>

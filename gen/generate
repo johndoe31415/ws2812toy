@@ -1,0 +1,20 @@
+#!/usr/bin/python3
+from ColorMixer import ColorMixer
+
+
+colmixer = ColorMixer("rainbow")
+count = 60
+print("struct ledColor rainbow[%d] = {" % (count))
+for i in range(count):
+	ratio = i / (count - 1)
+
+#	ratio = 2 * abs(i / count - 0.5)
+
+#	print(ratio)
+	color = colmixer[ratio]
+#	color = [ round(x * 0.333) for x in color ]
+#	print("ledColors[%d].red = 0x%x;" % (i, color[0]))
+#	print("ledColors[%d].green = 0x%x;" % (i, color[1]))
+#	print("ledColors[%d].blue = 0x%x;" % (i, color[2]))
+	print("	{ .red = 0x%02x, .green = 0x%02x, .blue = 0x%02x }," % color)
+print("};")

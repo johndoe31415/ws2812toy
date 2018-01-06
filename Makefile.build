@@ -1,0 +1,20 @@
+# Project name
+PROJNAME := ledring
+
+# MCU properties
+MCU_CLOCK := 18432000
+MCU_UNIT := atmega88
+
+# Source files
+OBJS := ws2812.o ws2812_ll.o colors.o delay.o
+
+LIBOBJS :=
+
+# Build options
+CFLAGS = -Wall -Werror -Wunused -Wuninitialized -Wno-inline -Os -mmcu=$(MCU) -DF_CPU=$(MCU_CLOCK)UL -g -std=c11
+
+HALINPUT := hal.xml
+
+#CFLAGS += -ffunction-sections
+#CFLAGS += -fdata-sections
+CFLAGS += -fmerge-all-constants
