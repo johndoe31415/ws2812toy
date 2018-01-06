@@ -1,6 +1,6 @@
 /*
 	ws2812toy - Control a ring of WS2812 RGB LEDs from an ATmega88.
-	Copyright (C) 2011-2015 Johannes Bauer
+	Copyright (C) 2015-2018 Johannes Bauer
 
 	This file is part of ws2812toy.
 
