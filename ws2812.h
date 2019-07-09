@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include "colors.h"
 
-#define LEDCOUNT 60
+#define LEDCOUNT 16
 
 /*************** AUTO GENERATED SECTION FOLLOWS ***************/
 void ws2812_update(void);
