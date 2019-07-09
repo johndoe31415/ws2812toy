@@ -21,21 +21,20 @@
 	Johannes Bauer <JohannesBauer@gmx.de>
 */
 
-#ifndef __LEDRING_H__
-#define __LEDRING_H__
+#include "debounce.h"
 
-#include <stdint.h>
-#include "colors.h"
-
-#define LEDCOUNT 32
-
-/*************** AUTO GENERATED SECTION FOLLOWS ***************/
-void ws2812_update(void);
-void ws2812_rotate(void);
-void ws2812_set(uint8_t led_index, const struct color_t *color);
-void ws2812_set_all(const struct color_t *color);
-void ws2812_clr_all(void);
-void ws2812_init(void);
-/***************  AUTO GENERATED SECTION ENDS   ***************/
-
-#endif
+uint8_t debounce(struct debounce_t *button, bool state) {
+	if (state == button->last_state) {
+		if (button->counter) {
+			button->counter--;
+		}
+	} else {
+		button->counter++;
+		if (button->counter == DEBOUNCE_THRESHOLD) {
+			button->counter = 0;
+			button->last_state = state;
+			return state ? ACTION_PRESSED : ACTION_RELEASED;
+		}
+	}
+	return NOACTION;
+}

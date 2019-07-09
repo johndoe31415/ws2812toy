@@ -36,7 +36,7 @@ DATASHEET := ATmega16_doc2466.pdf
 HEADERFILE := iom168.h
 else
 ifeq ($(MCU_UNIT),atmega88)
-MCU_AVRDUDE := m88
+MCU_AVRDUDE := m88p
 MCU := atmega88
 FLASH_SIZE := $(shell expr 8 \* 1024)
 SRAM_SIZE := $(shell expr 1 \* 1024)
@@ -148,7 +148,7 @@ endif
 all: $(PROJNAME) $(PROJNAME).S $(PROJNAME)_Flash.hex $(PROJNAME)_EEPROM.hex $(PROJNAME).bin $(PROJNAME).E $(PROJNAME).syms $(PROJNAME).dmp
 
 halgen:
-	$(HALGEN) -a avr -o HAL.h $(HALINPUT)
+	$(HALGEN) -a avr -o hal.h $(HALINPUT)
 
 doc:
 	evince $(DATASHEET_DIRECTORY)$(DATASHEET) &

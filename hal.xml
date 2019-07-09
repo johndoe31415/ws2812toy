@@ -1,8 +1,9 @@
 <?xml version="1.0" ?>
 <HAL>
 	<templates>
-		<template name="diginput">
-			<pin type="input" initialpullup="inactive" />
+		<template name="diginputswitch">
+			<pin type="input" initialpullup="active" />
+			<activelow />
 		</template>
 
 		<template name="digoutput">
@@ -13,6 +14,7 @@
 			<pin type="output" initialvalue="inactive" />
 			<activelow />
 		</template>
+
 		<template name="digio">
 			<pin type="io" initialstate="input" initialpullup="inactive" />
 		</template>
@@ -20,5 +22,13 @@
 
 	<portpin name="PB0" template="digoutput">
 		<description value="LEDOutput" />
+	</portpin>
+
+	<portpin name="PC4" template="digoutput">
+		<description value="PowerLED" />
+	</portpin>
+
+	<portpin name="PC3" template="diginputswitch">
+		<description value="Switch" />
 	</portpin>
 </HAL>

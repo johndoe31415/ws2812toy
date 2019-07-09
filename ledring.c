@@ -23,12 +23,75 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 #include "hal.h"
 #include "delay.h"
 #include "colors.h"
 #include "ws2812.h"
+#include "debounce.h"
 
+enum mode_t {
+	MODE_OFF = 0,
+	MODE_RING,
+	MODE_LAST,
+};
+
+static struct debounce_t debouncer;
+static volatile bool interrupt;
+static uint8_t mode = MODE_OFF;
+
+static void interruptible_sleep(uint16_t millis) {
+	while (!interrupt && millis--) {
+		delay_millis(1);
+	}
+}
+
+static void interruptible_function_showfixedcolor(void) {
+	struct color_t color = { 0 };
+	if (mode == MODE_RING) {
+		color.red = 255;
+	}
+	color_dim(&color, 3);
+	ws2812_set_all(&color);
+	ws2812_update();
+	interruptible_sleep(500);
+}
+
+static void interruptible_function(void) {
+	if (mode == MODE_OFF) {
+		ws2812_clr_all();
+		ws2812_update();
+		while (!interrupt) {
+			interruptible_sleep(1000);
+		}
+	} else if (mode == MODE_RING) {
+
+		for (uint8_t color_index = 0; color_index < (2 * RAINBOW_COLOR_COUNT) - 2; color_index++) {
+			struct color_t color;
+			color_lookup_cyclic(&color, rainbow, color_index, RAINBOW_COLOR_COUNT);
+			color_dim(&color, 2);
+
+			if (color_index == 0) {
+				ws2812_set_all(&color);
+			}
+
+			for (uint8_t led = 0; led < LEDCOUNT; led++) {
+				ws2812_set(led, &color);
+				ws2812_update();
+				interruptible_sleep(100);
+				if (interrupt) {
+					break;
+				}
+			}
+			if (interrupt) {
+				break;
+			}
+		}
+	}
+}
+
+#if 0
 static void ledring_load_rainbow(void) {
 	for (int i = 0; i < LEDCOUNT; i++) {
 		struct color_t color;
@@ -95,15 +158,43 @@ static void ledring_rainbow_tail(uint8_t cycle_cnt, uint8_t colorchg, uint8_t ta
 		center = (center - colorchg + LEDCOUNT) % LEDCOUNT;
 	}
 }
+#endif
+
+ISR(TIMER0_OVF_vect) {
+	TCNT0 = 0x70; 	/* 500 µs */
+	if (debounce(&debouncer, Switch_IsActive()) == ACTION_PRESSED) {
+		mode++;
+		if (mode == MODE_LAST) {
+			mode = MODE_OFF;
+		}
+		PowerLED_SetConditional(mode != MODE_OFF);
+		interrupt = true;
+	}
+}
 
 int main() {
 	initHAL();
 	ws2812_init();
 
+	TCCR0B = _BV(CS01) | _BV(CS00);		/* CK / 64 */
+	TIMSK0 = _BV(TOIE0);
+	TCNT0 = 0x70; 	/* 500 µs */
+	sei();
+
 	while (true) {
+		if (interrupt) {
+			/* Show new mode */
+			interrupt = false;
+			interruptible_function_showfixedcolor();
+			continue;
+		}
+		interruptible_function();
+		/*
 		ledring_rotate_rainbow(5, 25);
 		ledring_all_rainbow(3, 50);
 		ledring_rainbow_tail(3, 15, 2, 25);
+		*/
+//		PowerLED_SetConditional(Switch_IsActive());
 	}
 
 	return 0;

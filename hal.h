@@ -1,7 +1,7 @@
-/* Automatically generated HAL from HAL.xml */
+/* Automatically generated HAL from hal.xml */
 /* NEVER EDIT MANUALLY */
 
-/* Generated on: 2015-09-23 23:50:46 */
+/* Generated on: 2019-07-09 22:23:58 */
 
 #ifndef __HAL_H__
 #define __HAL_H__
@@ -31,8 +31,46 @@
 #define LEDOutput_IsActive()                     (LEDOutput_Get() != 0)
 #define LEDOutput_Init()                         { LEDOutput_SetInactive(); LEDOutput_ModeOutput(); }
 
+/* PowerLED -> PC4 (Output, Initially Inactive) */
+#define PowerLED_BIT                             4
+#define PowerLED_PIN                             PINC
+#define PowerLED_PORT                            PORTC
+#define PowerLED_DDR                             DDRC
+#define PowerLED_ModeOutput()                    PowerLED_DDR |= _BV(PowerLED_BIT)
+#define PowerLED_IsOutput()                      ((PowerLED_DDR & _BV(PowerLED_BIT)) != 0)
+#define PowerLED_SetHIGH()                       PowerLED_PORT |= _BV(PowerLED_BIT)
+#define PowerLED_SetLOW()                        PowerLED_PORT &= ~_BV(PowerLED_BIT)
+#define PowerLED_Get()                           (PowerLED_PIN & _BV(PowerLED_BIT))
+#define PowerLED_SetInactive()                   PowerLED_SetLOW()
+#define PowerLED_SetActive()                     PowerLED_SetHIGH()
+#define PowerLED_Toggle()                        PowerLED_PORT ^= _BV(PowerLED_BIT)
+#define PowerLED_SetConditional(condition)       if (condition) PowerLED_SetActive(); else PowerLED_SetInactive()
+#define PowerLED_SetConditionalToggle(conditionon, conditionoff, conditiontoggle) if (conditionon) { PowerLED_SetActive(); } else if (conditionoff) { PowerLED_SetInactive(); } else if (conditiontoggle) { PowerLED_Toggle(); }
+#define PowerLED_Pulse()                         { PowerLED_SetActive(); PowerLED_SetInactive(); }
+#define PowerLED_PulseNop()                      { PowerLED_SetActive(); nop(); PowerLED_SetInactive(); }
+#define PowerLED_IsInactive()                    (PowerLED_Get() == 0)
+#define PowerLED_IsActive()                      (PowerLED_Get() != 0)
+#define PowerLED_Init()                          { PowerLED_SetInactive(); PowerLED_ModeOutput(); }
+
+/* Switch -> PC3 (Input, Initially Pullup On, Active-Low) */
+#define Switch_BIT                               3
+#define Switch_PIN                               PINC
+#define Switch_PORT                              PORTC
+#define Switch_DDR                               DDRC
+#define Switch_SetPullupActive()                 Switch_PORT |= _BV(Switch_BIT)
+#define Switch_SetPullupInactive()               Switch_PORT &= ~_BV(Switch_BIT)
+#define Switch_ModeInput()                       Switch_DDR &= ~_BV(Switch_BIT)
+#define Switch_IsInput()                         ((Switch_DDR & _BV(Switch_BIT)) == 0)
+#define Switch_Get()                             (Switch_PIN & _BV(Switch_BIT))
+#define Switch_GetBit()                          (Switch_Get() >> Switch_BIT)
+#define Switch_IsInactive()                      (Switch_Get() != 0)
+#define Switch_IsActive()                        (Switch_Get() == 0)
+#define Switch_Init()                            { Switch_SetPullupActive(); Switch_ModeInput(); }
+
 #define initHAL() {\
 		LEDOutput_Init();\
+		PowerLED_Init();\
+		Switch_Init();\
 }
 
 #endif

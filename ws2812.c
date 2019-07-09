@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <avr/pgmspace.h>
+#include <avr/interrupt.h>
 
 #include "ws2812.h"
 #include "ws2812_ll.h"
@@ -34,9 +35,11 @@ static struct color_t led_colors[LEDCOUNT];
 staticassert(sizeof(led_colors) == LEDCOUNT * sizeof(struct color_t));
 
 void ws2812_update(void) {
+	cli();
 	for (uint8_t i = 0; i < 3 * LEDCOUNT; i++) {
 		ws2812_sendbyte(((uint8_t*)led_colors)[i]);
 	}
+	sei();
 }
 
 void ws2812_rotate(void) {

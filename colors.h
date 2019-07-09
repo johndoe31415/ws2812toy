@@ -32,7 +32,11 @@ struct color_t {
 } __attribute__ ((packed));
 staticassert(sizeof(struct color_t) == 3);
 
-extern const struct color_t rainbow[60] PROGMEM;
+#define RAINBOW_COLOR_COUNT 60
+extern const struct color_t rainbow[RAINBOW_COLOR_COUNT] PROGMEM;
+
+#define RAINBOWX_COLOR_COUNT 2
+extern const struct color_t rainbowx[RAINBOWX_COLOR_COUNT] PROGMEM;
 
 /*************** AUTO GENERATED SECTION FOLLOWS ***************/
 void color_dim(struct color_t *color, uint8_t shift_bits);

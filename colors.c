@@ -25,7 +25,12 @@
 
 #include "colors.h"
 
-const struct color_t rainbow[60] PROGMEM = {
+const struct color_t rainbowx[RAINBOWX_COLOR_COUNT] PROGMEM = {
+	{ .red = 0xff, .green = 0x00, .blue = 0x00 },
+	{ .red = 0x00, .green = 0xff, .blue = 0x00 },
+};
+
+const struct color_t rainbow[RAINBOW_COLOR_COUNT] PROGMEM = {
 	{ .red = 0xfb, .green = 0x0c, .blue = 0x09 },
 	{ .red = 0xfb, .green = 0x16, .blue = 0x0d },
 	{ .red = 0xfb, .green = 0x20, .blue = 0x12 },
@@ -95,21 +100,15 @@ void color_dim(struct color_t *color, uint8_t shift_bits) {
 }
 
 void color_lookup(struct color_t *color, const struct color_t *lookup_table, uint8_t index) {
-	if (index < 60) {
-		memcpy_P(color, lookup_table + index, sizeof(struct color_t));
-	} else {
-		/* Undefined! */
-		color->red = 0xff;
-		color->green = 0;
-		color->blue = 0;
-	}
+	memcpy_P(color, lookup_table + index, sizeof(struct color_t));
 }
 
 void color_lookup_cyclic(struct color_t *color, const struct color_t *lookup_table, uint8_t index, uint8_t total_colors) {
-	index *= 2;
-	if (index < total_colors) {
-		color_lookup(color, lookup_table, index);
-	} else {
-		color_lookup(color, lookup_table, (2 * total_colors) - index - 1);
+	if (index >= (2 * total_colors) - 2) {
+		index = 0;
 	}
+	if (index >= total_colors) {
+		index = (2 * total_colors) - 2 - index;
+	}
+	color_lookup(color, lookup_table, index);
 }

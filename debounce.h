@@ -21,21 +21,27 @@
 	Johannes Bauer <JohannesBauer@gmx.de>
 */
 
-#ifndef __LEDRING_H__
-#define __LEDRING_H__
+#ifndef __DEBOUNCE_H__
+#define __DEBOUNCE_H__
 
 #include <stdint.h>
-#include "colors.h"
+#include <stdbool.h>
 
-#define LEDCOUNT 32
+#define DEBOUNCE_THRESHOLD		50
+
+enum debounce_action_t {
+	NOACTION = 0,
+	ACTION_PRESSED = 1,
+	ACTION_RELEASED = 2,
+};
+
+struct debounce_t {
+	uint8_t counter;
+	bool last_state;
+};
 
 /*************** AUTO GENERATED SECTION FOLLOWS ***************/
-void ws2812_update(void);
-void ws2812_rotate(void);
-void ws2812_set(uint8_t led_index, const struct color_t *color);
-void ws2812_set_all(const struct color_t *color);
-void ws2812_clr_all(void);
-void ws2812_init(void);
+uint8_t debounce(struct debounce_t *button, bool state);
 /***************  AUTO GENERATED SECTION ENDS   ***************/
 
 #endif

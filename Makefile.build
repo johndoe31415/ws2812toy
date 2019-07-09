@@ -6,7 +6,7 @@ MCU_CLOCK := 18432000
 MCU_UNIT := atmega88
 
 # Source files
-OBJS := ws2812.o ws2812_ll.o colors.o delay.o
+OBJS := ws2812.o ws2812_ll.o colors.o delay.o debounce.o
 
 LIBOBJS :=
 
