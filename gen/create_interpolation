@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+from PnmPicture import PnmPicture
+
+pic = PnmPicture().readfile("warmcolors.pnm")
+for y in range(pic.height):
+	px = pic.getpixel(0, y)
+	percent = y / (pic.height - 1)
+	print("%.3f %-20s %02x%02x%02x" % (percent, px, px[0], px[1], px[2]))

@@ -33,13 +33,27 @@
 
 enum mode_t {
 	MODE_OFF = 0,
-	MODE_RING,
+	MODE_RAINBOW,
+	MODE_WARMCOLORS,
+	MODE_DIMWHITE,
+	MODE_BRIGHTWHITE,
 	MODE_LAST,
 };
 
 static struct debounce_t debouncer;
 static volatile bool interrupt;
 static uint8_t mode = MODE_OFF;
+static const struct color_t dim_white = {
+	.red = 100,
+	.green = 100,
+	.blue = 100,
+};
+static const struct color_t bright_white = {
+	.red = 200,
+	.green = 200,
+	.blue = 200,
+};
+
 
 static void interruptible_sleep(uint16_t millis) {
 	while (!interrupt && millis--) {
@@ -49,10 +63,17 @@ static void interruptible_sleep(uint16_t millis) {
 
 static void interruptible_function_showfixedcolor(void) {
 	struct color_t color = { 0 };
-	if (mode == MODE_RING) {
+	if (mode == MODE_RAINBOW) {
+		color.blue = 255;
+		color_dim(&color, 3);
+	} else if (mode == MODE_WARMCOLORS) {
 		color.red = 255;
+		color_dim(&color, 3);
+	} else if (mode == MODE_DIMWHITE) {
+		color = dim_white;
+	} else if (mode == MODE_BRIGHTWHITE) {
+		color = bright_white;
 	}
-	color_dim(&color, 3);
 	ws2812_set_all(&color);
 	ws2812_update();
 	interruptible_sleep(500);
@@ -65,11 +86,21 @@ static void interruptible_function(void) {
 		while (!interrupt) {
 			interruptible_sleep(1000);
 		}
-	} else if (mode == MODE_RING) {
+	} else if ((mode == MODE_RAINBOW) || (mode == MODE_WARMCOLORS)) {
+		uint8_t color_count;
+		const struct color_t *colors;
+		if (mode == MODE_RAINBOW) {
+			color_count = RAINBOW_COLOR_COUNT;
+			colors = rainbow;
+		} else {
+			color_count = RAINBOW_COLOR_COUNT;
+			colors = warmcolors;
+		}
 
-		for (uint8_t color_index = 0; color_index < (2 * RAINBOW_COLOR_COUNT) - 2; color_index++) {
+		const uint8_t max_index = (2 * color_count) - 2;
+		for (uint8_t color_index = 0; color_index < max_index; color_index++) {
 			struct color_t color;
-			color_lookup_cyclic(&color, rainbow, color_index, RAINBOW_COLOR_COUNT);
+			color_lookup_cyclic(&color, colors, color_index, color_count);
 			color_dim(&color, 2);
 
 			if (color_index == 0) {
@@ -88,77 +119,19 @@ static void interruptible_function(void) {
 				break;
 			}
 		}
-	}
-}
-
-#if 0
-static void ledring_load_rainbow(void) {
-	for (int i = 0; i < LEDCOUNT; i++) {
-		struct color_t color;
-		color_lookup_cyclic(&color, rainbow, i, LEDCOUNT);
-		color_dim(&color, 2);
-		ws2812_set(i, &color);
-	}
-}
-
-static void ledring_rotate_full(uint16_t millis) {
-	for (int i = 0; i < LEDCOUNT; i++) {
-		ws2812_rotate();
+	} else if ((mode == MODE_DIMWHITE) || (mode == MODE_BRIGHTWHITE)) {
+		struct color_t const_color;
+		const_color = (mode == MODE_DIMWHITE) ? dim_white : bright_white;
+		ws2812_set_all(&const_color);
 		ws2812_update();
-		delay_millis(millis);
-	}
-}
-
-static void ledring_rotate_rainbow(uint8_t rotation_cnt, uint16_t millis) {
-	ledring_load_rainbow();
-	for (uint8_t i = 0; i < rotation_cnt; i++) {
-		ledring_rotate_full(millis);
-	}
-}
-
-static void ledring_all_rainbow(uint8_t cycle_cnt, uint16_t millis) {
-	for (uint8_t j = 0; j < cycle_cnt; j++) {
-		for (uint8_t i = 0; i < LEDCOUNT; i++) {
-			struct color_t color;
-			color_lookup_cyclic(&color, rainbow, i, LEDCOUNT);
-			color_dim(&color, 2);
-			ws2812_set_all(&color);
-			ws2812_update();
-			delay_millis(millis);
+		while (true) {
+			interruptible_sleep(1);
+			if (interrupt) {
+				break;
+			}
 		}
 	}
 }
-
-static void ledring_set_tail(uint8_t center_index, const struct color_t *center_color, uint8_t tail_length) {
-	ws2812_clr_all();
-	ws2812_set(center_index, center_color);
-
-	struct color_t tail_color = *center_color;
-	for (uint8_t i = 0; i < 4; i++) {
-		color_dim(&tail_color, 1);
-
-		for (uint8_t j = 0; j < tail_length; j++) {
-			ws2812_set((center_index + (tail_length * i) + j) % LEDCOUNT, &tail_color);
-			ws2812_set((center_index - (tail_length * i) + j + LEDCOUNT) % LEDCOUNT, &tail_color);
-		}
-	}
-}
-
-static void ledring_rainbow_tail(uint8_t cycle_cnt, uint8_t colorchg, uint8_t tail_length, uint16_t millis) {
-	uint8_t center = 0;
-	for (uint8_t coloridx = 0; coloridx < LEDCOUNT; coloridx ++) {
-		struct color_t color;
-		color_lookup_cyclic(&color, rainbow, coloridx, LEDCOUNT);
-		ledring_set_tail(center, &color, tail_length);
-		for (uint8_t j = 0; j < colorchg; j++) {
-			ws2812_rotate();
-			ws2812_update();
-			delay_millis(millis);
-		}
-		center = (center - colorchg + LEDCOUNT) % LEDCOUNT;
-	}
-}
-#endif
 
 ISR(TIMER0_OVF_vect) {
 	TCNT0 = 0x70; 	/* 500 µs */
@@ -189,12 +162,6 @@ int main() {
 			continue;
 		}
 		interruptible_function();
-		/*
-		ledring_rotate_rainbow(5, 25);
-		ledring_all_rainbow(3, 50);
-		ledring_rainbow_tail(3, 15, 2, 25);
-		*/
-//		PowerLED_SetConditional(Switch_IsActive());
 	}
 
 	return 0;

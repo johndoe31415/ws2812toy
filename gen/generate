@@ -1,10 +1,10 @@
 #!/usr/bin/python3
-from ColorMixer import ColorMixer
+from AdvancedColorPalette import AdvancedColorPalette
 
-
-colmixer = ColorMixer("rainbow")
+name = "warmcolors"
+colmixer = AdvancedColorPalette.load_from_json("palettes.json", name)
 count = 60
-print("struct ledColor rainbow[%d] = {" % (count))
+print("const struct color_t %s[%d] = {" % (name, count))
 for i in range(count):
 	ratio = i / (count - 1)
 
